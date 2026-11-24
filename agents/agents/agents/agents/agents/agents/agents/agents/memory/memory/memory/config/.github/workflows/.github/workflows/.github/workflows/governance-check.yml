@@ -1,0 +1,47 @@
+name: Governance check
+
+# تشغيل يدوي مقصود لمراجعة الملفات بأمان؛ لا ينفذ كودًا مقدمًا من طلبات السحب.
+# ترتيب النماذج متسلسل: GitHub Models ثم Groq ثم Gemini ثم مزود مجاني إضافي.
+# فشل/نفاد الحصة ينتقل إلى المزود التالي، دون تشغيل متوازٍ أو نشر تلقائي.
+on:
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: نطاق المراجعة أو اسم الملف/الحملة
+        required: false
+        type: string
+        default: المستودع وقواعده
+
+permissions:
+  contents: read
+  models: read
+
+jobs:
+  governance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Run governance review with sequential fallback
+        env:
+          REVIEW_SCOPE: ${{ inputs.scope }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OTHER_FREE_BASE_URL: ${{ secrets.OTHER_FREE_BASE_URL }}
+          OTHER_FREE_API_KEY: ${{ secrets.OTHER_FREE_API_KEY }}
+          OTHER_FREE_MODEL: ${{ vars.OTHER_FREE_MODEL }}
+        run: |
+          mkdir -p reports
+          python scripts/run_agent.py \
+            --agent agents/governance.md \
+            --task "راجع نطاقًا: ${REVIEW_SCOPE}. افحص السياسات والملفات المحددة المتاحة في سياق هذه المهمة، وقدم قائمة مراجعة للمخاطر والإجراءات. لا تدّعِ فحص ملفات لم تُمرر إليك؛ اذكر حدود السياق بوضوح. المراجعة استشارية وتحتاج اعتمادًا بشريًا." \
+            --output reports/governance-review.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: governance-review
+          path: reports/governance-review.md
+          if-no-files-found: error
