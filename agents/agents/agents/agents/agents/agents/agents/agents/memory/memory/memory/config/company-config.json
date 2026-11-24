@@ -1,0 +1,52 @@
+{
+  "company": {
+    "name": "AI Content Agency",
+    "language": "ar",
+    "human_approval_required": true,
+    "automatic_publishing": false
+  },
+  "model_fallback": {
+    "description": "محاولات متسلسلة فقط وليست متوازية: GitHub Models ثم Groq ثم Gemini ثم مزود مجاني إضافي متوافق مع OpenAI. عند فشل الطلب أو تعذر الإعداد أو نفاد الحصة، ينتقل التنفيذ إلى المزود التالي.",
+    "sequential_only": true,
+    "timeout_seconds": 45,
+    "max_tokens": 1200,
+    "providers": [
+      {
+        "name": "github_models",
+        "priority": 1,
+        "base_url": "https://models.github.ai/inference",
+        "model_env": "GITHUB_MODELS_MODEL",
+        "default_model": "openai/gpt-4o-mini",
+        "key_env": "GITHUB_TOKEN",
+        "free_tier_note": "تتغير النماذج المتاحة والحصص حسب الحساب؛ يتطلب رمز Actions بصلاحية models: read."
+      },
+      {
+        "name": "groq",
+        "priority": 2,
+        "base_url": "https://api.groq.com/openai/v1",
+        "model_env": "GROQ_MODEL",
+        "default_model": "llama-3.3-70b-versatile",
+        "key_env": "GROQ_API_KEY",
+        "free_tier_note": "الاستخدام يخضع لحدود وسياسات Groq الحالية؛ يتطلب مفتاحًا من Groq Console."
+      },
+      {
+        "name": "gemini",
+        "priority": 3,
+        "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
+        "model_env": "GEMINI_MODEL",
+        "default_model": "gemini-2.0-flash",
+        "key_env": "GEMINI_API_KEY",
+        "free_tier_note": "الاستخدام يخضع لأهلية المنطقة والحصة وسياسات Google AI Studio الحالية؛ يتطلب مفتاحًا."
+      },
+      {
+        "name": "other_free",
+        "priority": 4,
+        "base_url_env": "OTHER_FREE_BASE_URL",
+        "model_env": "OTHER_FREE_MODEL",
+        "default_model": "",
+        "key_env": "OTHER_FREE_API_KEY",
+        "free_tier_note": "اختياري: نقطة نهاية متوافقة مع OpenAI لمزود مجاني آخر. لا تستخدم مزودًا مدفوعًا أو تضع الأسرار في الملفات."
+      }
+    ]
+  }
+}
